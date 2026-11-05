@@ -70,6 +70,7 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
           <span></span><button data-dir="back" aria-label="back">▼</button><span></span>
         </div>
         <p class="note">Keys: arrows / WASD, space = stop.</p>
+        <p class="note" id="pad">🎮 Game controller: plug in or pair it, then press any button.</p>
       </div>
       <div class="card">
         <h2>Eye color</h2>
@@ -272,6 +273,48 @@ for (const [name, css] of Object.entries(SWATCH)) {
 $("#speed").oninput = (e) => robot.setSpeed(+e.target.value);
 $("#eyes").onchange = (e) => robot.setBlink(e.target.checked);
 document.querySelectorAll("[data-rand]").forEach((b) => b.onclick = () => robot.send(robot.randomId(b.dataset.rand), +$("#beats").value));
+
+// ---------- gamepad (standard mapping: Xbox / PlayStation / 8BitDo) ----------
+// Stick or D-pad drives (hold), A dance, X hand, Y leg, B stop, LB/RB eye color, LT/RT speed, Start blink.
+const PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+let padPrev = [], padHeld = null, padLoop = 0;
+const padDir = (gp) => {
+  const b = (i) => gp.buttons[i]?.pressed;
+  if (b(PAD.UP)) return "forward"; if (b(PAD.DOWN)) return "back";
+  if (b(PAD.LEFT)) return "left"; if (b(PAD.RIGHT)) return "right";
+  const [x = 0, y = 0] = gp.axes;
+  if (Math.max(Math.abs(x), Math.abs(y)) < 0.5) return null; // dead zone
+  return Math.abs(y) >= Math.abs(x) ? (y < 0 ? "forward" : "back") : (x < 0 ? "left" : "right");
+};
+const stepSwatch = (d) => {
+  const sw = [...document.querySelectorAll(".sw")];
+  const i = sw.findIndex((x) => x.getAttribute("aria-pressed") === "true");
+  sw[(i + d + sw.length) % sw.length].click();
+};
+const stepSpeed = (d) => { const s = $("#speed"); s.value = Math.max(0, Math.min(3, +s.value + d)); s.oninput({ target: s }); };
+const padTick = () => {
+  const gp = [...(navigator.getGamepads?.() ?? [])].find(Boolean);
+  if (!gp) { clearInterval(padLoop); padLoop = 0; return; }
+  const down = (i) => gp.buttons[i]?.pressed && !padPrev[i]; // fire once per press
+  const dir = padDir(gp);
+  if (dir !== padHeld) { if (dir) press(dir); else if (padHeld) release(); padHeld = dir; }
+  const beats = +$("#beats").value;
+  if (down(PAD.A)) robot.send(robot.randomId("combined"), beats);
+  if (down(PAD.X)) robot.send(robot.randomId("hand"), beats);
+  if (down(PAD.Y)) robot.send(robot.randomId("leg"), beats);
+  if (down(PAD.B)) robot.halt();
+  if (down(PAD.LB)) stepSwatch(-1);
+  if (down(PAD.RB)) stepSwatch(1);
+  if (down(PAD.LT)) stepSpeed(-1);
+  if (down(PAD.RT)) stepSpeed(1);
+  if (down(PAD.START)) { const e = $("#eyes"); e.checked = !e.checked; e.onchange({ target: e }); }
+  padPrev = gp.buttons.map((x) => x.pressed);
+};
+addEventListener("gamepadconnected", (e) => {
+  $("#pad").textContent = `🎮 ${e.gamepad.id.replace(/\s*\(.*$/, "")}: stick/D-pad drive · A dance · X hand · Y leg · B stop · LB/RB color · LT/RT speed · Start blink`;
+  if (!padLoop) padLoop = setInterval(padTick, 30); // ~33 Hz poll; rAF can be paused in some windows
+});
+addEventListener("gamepaddisconnected", () => { $("#pad").textContent = "🎮 Controller disconnected."; if (padHeld) { release(); padHeld = null; } });
 
 const renderIds = () => {
   const [lo, hi] = RANGES[$("#kind").value]; const box = $("#ids"); box.innerHTML = "";

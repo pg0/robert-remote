@@ -9,6 +9,7 @@ Needs **Chrome or Edge** (Windows, macOS, Android, ChromeOS). Firefox and iOS br
 ## Features
 
 - Hold-to-drive arrows (also arrow keys / WASD, space = stop)
+- Game controller (Xbox / PlayStation / 8BitDo, USB or Bluetooth): stick or D-pad drive, A dance, X hand, Y leg, B stop, LB/RB eye color, LT/RT speed, Start blink
 - Eye color, speed, eye blink
 - Every built-in move: 93 dances, 11 hand moves, 35 leg moves
 - Choreography tab: write short JavaScript scripts, with presets
