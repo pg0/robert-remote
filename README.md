@@ -38,7 +38,7 @@ AA AA CC 32 01 | A A T S C E 02 02 | 01 01 | 55 55
 |---|---|
 | A | action: 1-93 dances, 100-110 hand, 200-235 leg (no 231), **77 = stop**. Driving (seen from Robert's face) = 1 forward, 2 back, 3 right, 4 left |
 | T | beats 2/4/8/12, `FF` = keep going until next command |
-| S / C / E | speed 0-3 · color 1 dark blue, 2 blue, 3 green, 4 yellow, 5 red, 6 purple, 7 white · eyes 0 on, 4 off |
+| S / C / E | speed (tested) 0-1 regular, 2 slower, 3 slowest · color 1 dark blue, 2 blue, 3 green, 4 yellow, 5 red, 6 purple, 7 white · eyes 0 on, 4 off |
 
 The robot stores no programs; the app streams one move at a time.
 
