@@ -39,9 +39,11 @@ AA AA CC 32 01 | A A T S C E 02 02 | 01 01 | 55 55
 | Field | Meaning |
 |---|---|
 | A | action: 1-93 dances, 100-110 hand, 200-235 leg (no 231), **77 = stop**. Driving (seen from Robert's face) = 1 forward, 2 back, 3 right, 4 left |
-| T | beats 2/4/8/12 (exact effect untested), `FF` = repeat the move until the next command (tested, also how walking works) |
-| S / C / E | speed 0 fastest > 1 > 2 > 3 slowest · eye color (tested) 1 blue, 2 cyan, 3 green, 4 yellow, 5 red, 6 purple, 7 white · eyes 0 steady, 4 slow blink |
+| T | beats 2/4/8/12 (~0.2 s each at speed 0), `FF` = repeat the move until the next command |
+| S / C / E | speed 0 fastest > 1 > 2 > 3 slowest · eye color 1 blue, 2 cyan, 3 green, 4 yellow, 5 red, 6 purple, 7 white · eyes 0 steady, 4 slow blink |
 
-The robot stores no programs; the app streams one move at a time.
+The robot stores no programs; the app streams one move at a time. Dances turn and move him, so give him room.
+
+**Full protocol, including the stop-and-report command and what was tested on a real robot: [docs/PROTOCOL.md](docs/PROTOCOL.md).**
 
 Unofficial project, not affiliated with ALLNET.
