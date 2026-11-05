@@ -74,7 +74,6 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
       <div class="card">
         <h2>Eye color</h2>
         <div class="row" id="colors"></div>
-        <p class="note">Eyes take 2-15 s to change color.</p>
         <p class="row" style="margin-top:12px"><label>Speed <span class="note">slow</span> <input id="speed" type="range" min="0" max="3" value="3"> <span class="note">fast</span></label></p>
         <p class="row"><label><input id="eyes" type="checkbox"> Eyes blink</label></p>
         <h2 style="margin-top:14px">Random move</h2>
@@ -197,11 +196,11 @@ for (let i = 0; i < 8; i++) {
   await wait(rand(100, 500))
 }
 await dance()`,
-  "Color show": `// eyes take 2-15 s to change color, so go slow
+  "Color show": `// eye colors switch right away
 for (const c of ['red', 'green', 'blue', 'yellow', 'purple', 'white', 'cyan']) {
   log(c)
   await color(c, true)
-  await wait(8000)
+  await wait(1500)
 }`,
   "Panic!": `color('red'); speed(3)
 for (let i = 0; i < 10; i++) {
