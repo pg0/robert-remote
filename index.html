@@ -86,7 +86,7 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
       <h2>All moves by number</h2>
       <div class="row" style="margin-bottom:8px">
         <select id="kind"><option value="combined">Dances 1-93</option><option value="hand">Hand 100-110</option><option value="leg">Leg 200-235</option></select>
-        <label class="note">beats <select id="beats"><option>2</option><option>4</option><option selected>8</option><option>12</option></select></label>
+        <label class="note">beats <select id="beats"><option>2</option><option>4</option><option selected>8</option><option>12</option><option value="255">loop until stop</option></select></label>
       </div>
       <div class="ids" id="ids"></div>
     </div>
@@ -103,7 +103,7 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
       <p class="note">JavaScript, <code>await</code> each step. <code>forward(ms)</code> <code>back(ms)</code> <code>left(ms)</code> <code>right(ms)</code> <code>stop()</code> ·
         <code>dance(n?, beats?, ms?)</code> <code>hand(n?)</code> <code>leg(n?)</code> <code>action(id, beats, ms)</code> ·
         <code>color('red')</code> applies on next move, <code>color('red', true)</code> now · <code>blink(bool)</code> <code>speed(0-3)</code> (3 = fastest) <code>wait(ms)</code> <code>rand(a,b)</code> <code>pick([..])</code> <code>log()</code>.
-        Leave <code>n</code> out for a random one. Also scriptable from DevTools as <code>robot</code>.</p>
+        Leave <code>n</code> out for a random one. Beats <code>'loop'</code> repeats the move for <code>ms</code>, e.g. <code>dance(10, 'loop', 6000)</code>. Also scriptable from DevTools as <code>robot</code>.</p>
     </div>
   </section>
 
@@ -166,7 +166,8 @@ class Robert {
   randomId(kind = "combined") { const [lo, hi] = RANGES[kind]; let id; do id = lo + Math.floor(Math.random() * (hi - lo + 1)); while (id === STOP || id === 231); return id; }
   async wait(ms) { const end = Date.now() + ms; while (Date.now() < end) { if (this.abort) throw new Aborted(); await new Promise((r) => setTimeout(r, Math.min(50, end - Date.now()))); } }
   async move(dir, ms) { await this.send(DIR[dir], CONTINUOUS); if (ms) { await this.wait(ms); await this.stop(); } }
-  async action(id, beats = 8, ms = 0) { await this.send(id, beats); if (ms) await this.wait(ms); }
+  // beats 'loop' sends FF: the robot repeats the move until the next command (tested). Stop after ms.
+  async action(id, beats = 8, ms = 0) { const loop = beats === 'loop'; await this.send(id, loop ? CONTINUOUS : beats); if (ms) { await this.wait(ms); if (loop) await this.stop(); } }
   async runScript(code) {
     this.abort = false; const r = this;
     const api = {
@@ -213,7 +214,7 @@ for (const c of cs) {
   color(c)
   const id = rand(1, 93)
   log('dance #' + id)
-  await dance(id, 8, 3500)
+  await dance(id, 'loop', 4000)
 }`,
   "Shy robot": `color('blue'); speed(0)
 await back(1200)
