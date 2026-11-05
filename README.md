@@ -2,7 +2,7 @@
 
 Browser remote and choreography playground for the ALLNET **"Robert" dancing robot**. No app, no install: open the page, click Connect, make it dance.
 
-**→ Live:** https://pg0.github.io/robert-remote/
+**→ Live:** https://lda.io/robert-remote/
 
 Needs **Chrome or Edge** (Windows, macOS, Android, ChromeOS). Firefox and iOS browsers have no Web Bluetooth. Close the phone app first, the robot accepts one connection at a time.
 
