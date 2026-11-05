@@ -75,7 +75,7 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
         <h2>Style</h2>
         <div class="row" id="colors"></div>
         <p class="row" style="margin-top:12px"><label>Speed <span class="note">slow</span> <input id="speed" type="range" min="0" max="3" value="3"> <span class="note">fast</span></label></p>
-        <p class="row"><label><input id="eyes" type="checkbox" checked> Eyes on</label></p>
+        <p class="row"><label><input id="eyes" type="checkbox"> Eyes blink</label></p>
         <h2 style="margin-top:14px">Random move</h2>
         <div class="row">
           <button data-rand="hand">🙌 Hand</button><button data-rand="leg">🦵 Leg</button><button data-rand="combined">💃 Dance</button>
@@ -102,7 +102,7 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
       <textarea id="code" spellcheck="false"></textarea>
       <p class="note">JavaScript, <code>await</code> each step. <code>forward(ms)</code> <code>back(ms)</code> <code>left(ms)</code> <code>right(ms)</code> <code>stop()</code> ·
         <code>dance(n?, beats?, ms?)</code> <code>hand(n?)</code> <code>leg(n?)</code> <code>action(id, beats, ms)</code> ·
-        <code>color('red')</code> applies on next move, <code>color('red', true)</code> now · <code>eyes(bool)</code> <code>speed(0-3)</code> (3 = fastest) <code>wait(ms)</code> <code>rand(a,b)</code> <code>pick([..])</code> <code>log()</code>.
+        <code>color('red')</code> applies on next move, <code>color('red', true)</code> now · <code>blink(bool)</code> <code>speed(0-3)</code> (3 = fastest) <code>wait(ms)</code> <code>rand(a,b)</code> <code>pick([..])</code> <code>log()</code>.
         Leave <code>n</code> out for a random one. Also scriptable from DevTools as <code>robot</code>.</p>
     </div>
   </section>
@@ -158,7 +158,8 @@ class Robert {
   }
   // The app re-sends "stop" after changing lights/eyes; that is what pushes them to the robot.
   setColor(c, now = true) { this.state.color = typeof c === "string" ? COLORS[c] ?? 2 : c; return now ? this.send(STOP) : Promise.resolve(); }
-  setEyes(on) { this.state.eyes = on ? 0 : 4; return this.send(STOP); }
+  // Eye byte, tested on camera: 4 = slow blink, 0-3 = steady.
+  setBlink(on) { this.state.eyes = on ? 4 : 0; return this.send(STOP); }
   // Robot speed byte, tested: 0 and 1 regular, 2 slower, 3 slowest. Slider and speed() use 0 = slow .. 3 = fast.
   setSpeed(s) { this.state.speed = 3 - Math.max(0, Math.min(3, s | 0)); }
   stop() { return this.send(STOP); }
@@ -175,7 +176,7 @@ class Robert {
       hand: (n = 0, beats = 8, ms = 2500) => r.action(n ? 99 + n : r.randomId("hand"), beats, ms),
       leg: (n = 0, beats = 8, ms = 2500) => r.action(n ? 199 + n : r.randomId("leg"), beats, ms),
       dance: (n = 0, beats = 8, ms = 3000) => r.action(n || r.randomId("combined"), beats, ms),
-      color: (c, now = false) => r.setColor(c, now), eyes: (on) => r.setEyes(on), speed: (s) => r.setSpeed(s),
+      color: (c, now = false) => r.setColor(c, now), blink: (on) => r.setBlink(on), speed: (s) => r.setSpeed(s),
       rand: (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1)), pick: (a) => a[Math.floor(Math.random() * a.length)],
       log: (...a) => r.onLog(a.join(" ")),
     };
@@ -198,10 +199,10 @@ await dance()`,
   "Disco lights": `const cs = ['red', 'green', 'blue', 'yellow', 'purple', 'white']
 for (let i = 0; i < 16; i++) {
   await color(cs[i % cs.length], true)
-  await eyes(i % 2 === 0)
+  await blink(i % 4 === 0)
   await wait(350)
 }
-await eyes(true)`,
+await blink(false)`,
   "Panic!": `color('red'); speed(3)
 for (let i = 0; i < 10; i++) {
   await left(250)
@@ -218,7 +219,7 @@ for (const c of cs) {
   "Shy robot": `color('darkblue'); speed(0)
 await back(1200)
 await left(600)
-await eyes(false); await wait(1500); await eyes(true)
+await blink(true); await wait(3000); await blink(false)
 await hand(3)
 await forward(400)`,
   "Blank": `// your choreography\n`,
@@ -269,7 +270,7 @@ for (const [name, css] of Object.entries(SWATCH)) {
   $("#colors").append(b);
 }
 $("#speed").oninput = (e) => robot.setSpeed(+e.target.value);
-$("#eyes").onchange = (e) => robot.setEyes(e.target.checked);
+$("#eyes").onchange = (e) => robot.setBlink(e.target.checked);
 document.querySelectorAll("[data-rand]").forEach((b) => b.onclick = () => robot.send(robot.randomId(b.dataset.rand), +$("#beats").value));
 
 const renderIds = () => {
