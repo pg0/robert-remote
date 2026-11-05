@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robert Remote</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d1b18;--mute:#6f6a62;--line:#e4e0d7;--acc:#e8553d;--acc-ink:#fff;--ok:#2f9e5b;--code:#f0ede6}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#141311;--card:#1e1c1a;--ink:#f1eee8;--mute:#a19b91;--line:#34312d;--acc:#ff6a50;--acc-ink:#140f0d;--ok:#4cc27c;--code:#26231f}}
+:root[data-theme=dark]{--bg:#141311;--card:#1e1c1a;--ink:#f1eee8;--mute:#a19b91;--line:#34312d;--acc:#ff6a50;--acc-ink:#140f0d;--ok:#4cc27c;--code:#26231f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:880px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:22px;margin:0;flex:1}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--mute);display:inline-block;margin-right:6px}
+.dot.on{background:var(--ok)}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer;touch-action:manipulation;user-select:none}
+button:hover{border-color:var(--mute)}
+button.primary{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+button:disabled{opacity:.45;cursor:not-allowed}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,64px);gap:8px;justify-content:center}
+.pad button{font-size:22px;padding:0}
+.pad .stop{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-size:13px;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sw{width:34px;height:34px;border-radius:50%;padding:0;border:3px solid transparent}
+.sw[aria-pressed=true]{border-color:var(--ink)}
+.ids{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:5px;max-height:220px;overflow:auto}
+.ids button{padding:6px 0;font-size:13px;font-variant-numeric:tabular-nums}
+textarea{width:100%;min-height:260px;font:13px/1.5 ui-monospace,Consolas,monospace;background:var(--code);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+select,input[type=range]{font:inherit;accent-color:var(--acc)}
+select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px}
+#log{font:12px/1.4 ui-monospace,Consolas,monospace;background:var(--code);border-radius:10px;padding:8px;height:140px;overflow:auto;white-space:pre-wrap;color:var(--mute)}
+.note{color:var(--mute);font-size:13px}
+code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
+.warn{border-color:var(--acc)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>🤖 Robert Remote</h1>
+    <span><span id="dot" class="dot"></span><span id="status">not connected</span></span>
+    <button id="connect" class="primary">Connect</button>
+  </header>
+
+  <div id="nobt" class="card warn" hidden>
+    <strong>This browser has no Web Bluetooth.</strong> Open this page in Chrome or Edge on Windows, Mac, Android or ChromeOS. Firefox and iPhone browsers can't do it.
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="remote">Remote</button>
+    <button role="tab" aria-selected="false" data-tab="play">Choreography</button>
+  </div>
+
+  <section id="tab-remote">
+    <div class="grid2">
+      <div class="card">
+        <h2>Drive (hold)</h2>
+        <div class="pad">
+          <span></span><button data-dir="forward" aria-label="forward">▲</button><span></span>
+          <button data-dir="left" aria-label="left">◀</button><button class="stop" id="stopBtn">STOP</button><button data-dir="right" aria-label="right">▶</button>
+          <span></span><button data-dir="back" aria-label="back">▼</button><span></span>
+        </div>
+        <p class="note">Keys: arrows / WASD, space = stop.</p>
+      </div>
+      <div class="card">
+        <h2>Style</h2>
+        <div class="row" id="colors"></div>
+        <p class="row" style="margin-top:12px"><label>Speed <input id="speed" type="range" min="0" max="3" value="0"></label> <span id="speedv" class="note">0</span></p>
+        <p class="row"><label><input id="eyes" type="checkbox" checked> Eyes on</label></p>
+        <h2 style="margin-top:14px">Random move</h2>
+        <div class="row">
+          <button data-rand="hand">🙌 Hand</button><button data-rand="leg">🦵 Leg</button><button data-rand="combined">💃 Dance</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>All moves by number</h2>
+      <div class="row" style="margin-bottom:8px">
+        <select id="kind"><option value="combined">Dances 1-93</option><option value="hand">Hand 100-110</option><option value="leg">Leg 200-235</option></select>
+        <label class="note">beats <select id="beats"><option>2</option><option>4</option><option selected>8</option><option>12</option></select></label>
+      </div>
+      <div class="ids" id="ids"></div>
+    </div>
+  </section>
+
+  <section id="tab-play" hidden>
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <select id="preset"></select>
+        <button id="run" class="primary">▶ Run</button>
+        <button id="halt">■ Stop</button>
+      </div>
+      <textarea id="code" spellcheck="false"></textarea>
+      <p class="note">JavaScript, <code>await</code> each step. <code>forward(ms)</code> <code>back(ms)</code> <code>left(ms)</code> <code>right(ms)</code> <code>stop()</code> ·
+        <code>dance(n?, beats?, ms?)</code> <code>hand(n?)</code> <code>leg(n?)</code> <code>action(id, beats, ms)</code> ·
+        <code>color('red')</code> applies on next move, <code>color('red', true)</code> now · <code>eyes(bool)</code> <code>speed(0-3)</code> <code>wait(ms)</code> <code>rand(a,b)</code> <code>pick([..])</code> <code>log()</code>.
+        Leave <code>n</code> out for a random one. Also scriptable from DevTools as <code>robot</code>.</p>
+    </div>
+  </section>
+
+  <div class="card"><h2>Log</h2><div id="log"></div></div>
+  <p class="note">Unofficial remote for the ALLNET "Robert" dancing robot. Close the phone app first, the robot takes one connection at a time.</p>
+</main>
+
+<script type="module">
+// ---------- protocol (reverse engineered from cn.app.robert 1.5.4) ----------
+const SERVICE = 0xffc0, WRITE_CHAR = 0xffc1;
+const COLORS = { darkblue: 1, blue: 2, green: 3, yellow: 4, red: 5, purple: 6, white: 7 };
+const SWATCH = { darkblue: "#2741c9", blue: "#3aa0ff", green: "#2fbf5b", yellow: "#f2c81f", red: "#e8413a", purple: "#9b4ddb", white: "#f4f4f4" };
+const STOP = 77, CONTINUOUS = 0xff;
+const DIR = { back: 1, forward: 2, left: 3, right: 4 };
+const RANGES = { combined: [1, 93], hand: [100, 110], leg: [200, 235] }; // 231 missing in the app
+
+// Mirrors the app's packet builder (type 0x32): header, type, count, 8-byte item, 01 01, footer.
+function buildPacket({ action, beats = 8, speed = 0, color = 2, eyes = 0 }) {
+  const a = action & 0xff;
+  return new Uint8Array([0xaa, 0xaa, 0xcc, 0x32, 0x01, a, a, beats & 0xff, speed & 0xff, color & 0xff, eyes & 0xff, 0x02, 0x02, 0x01, 0x01, 0x55, 0x55]);
+}
+const hex = (u8) => [...u8].map((b) => b.toString(16).padStart(2, "0")).join(" ");
+class Aborted extends Error {}
+
+class Robert {
+  constructor() {
+    this.device = null; this.char = null;
+    this.state = { speed: 0, color: COLORS.blue, eyes: 0 };
+    this.queue = Promise.resolve(); // GATT takes one op at a time
+    this.abort = false; this.onLog = () => {}; this.onStatus = () => {};
+  }
+  async connect() {
+    this.device = await navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "Robert" }, { services: [SERVICE] }], optionalServices: [SERVICE] });
+    this.device.addEventListener("gattserverdisconnected", () => { this.char = null; this.onStatus(false); this.onLog("disconnected"); });
+    const svc = await (await this.device.gatt.connect()).getPrimaryService(SERVICE);
+    this.char = await svc.getCharacteristic(WRITE_CHAR);
+    this.onStatus(true, this.device.name); this.onLog(`connected to ${this.device.name}`);
+  }
+  disconnect() { this.device?.gatt?.disconnect(); }
+  send(action, beats = 8) {
+    const pkt = buildPacket({ action, beats, ...this.state });
+    this.queue = this.queue.then(async () => {
+      if (!this.char) throw new Error("not connected");
+      const p = this.char.properties;
+      if (p.writeWithoutResponse && !p.write) await this.char.writeValueWithoutResponse(pkt);
+      else await this.char.writeValueWithResponse(pkt);
+      this.onLog(`→ ${hex(pkt)}`);
+      await new Promise((r) => setTimeout(r, 20)); // app paces writes at 20 ms
+    }).catch((e) => this.onLog(`write failed: ${e.message}`));
+    return this.queue;
+  }
+  // The app re-sends "stop" after changing lights/eyes; that is what pushes them to the robot.
+  setColor(c, now = true) { this.state.color = typeof c === "string" ? COLORS[c] ?? 2 : c; return now ? this.send(STOP) : Promise.resolve(); }
+  setEyes(on) { this.state.eyes = on ? 0 : 4; return this.send(STOP); }
+  setSpeed(s) { this.state.speed = Math.max(0, Math.min(3, s | 0)); }
+  stop() { return this.send(STOP); }
+  randomId(kind = "combined") { const [lo, hi] = RANGES[kind]; let id; do id = lo + Math.floor(Math.random() * (hi - lo + 1)); while (id === STOP || id === 231); return id; }
+  async wait(ms) { const end = Date.now() + ms; while (Date.now() < end) { if (this.abort) throw new Aborted(); await new Promise((r) => setTimeout(r, Math.min(50, end - Date.now()))); } }
+  async move(dir, ms) { await this.send(DIR[dir], CONTINUOUS); if (ms) { await this.wait(ms); await this.stop(); } }
+  async action(id, beats = 8, ms = 0) { await this.send(id, beats); if (ms) await this.wait(ms); }
+  async runScript(code) {
+    this.abort = false; const r = this;
+    const api = {
+      robot: r, wait: (ms) => r.wait(ms),
+      forward: (ms) => r.move("forward", ms), back: (ms) => r.move("back", ms), left: (ms) => r.move("left", ms), right: (ms) => r.move("right", ms),
+      stop: () => r.stop(), action: (id, beats, ms) => r.action(id, beats, ms),
+      hand: (n = 0, beats = 8, ms = 2500) => r.action(n ? 99 + n : r.randomId("hand"), beats, ms),
+      leg: (n = 0, beats = 8, ms = 2500) => r.action(n ? 199 + n : r.randomId("leg"), beats, ms),
+      dance: (n = 0, beats = 8, ms = 3000) => r.action(n || r.randomId("combined"), beats, ms),
+      color: (c, now = false) => r.setColor(c, now), eyes: (on) => r.setEyes(on), speed: (s) => r.setSpeed(s),
+      rand: (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1)), pick: (a) => a[Math.floor(Math.random() * a.length)],
+      log: (...a) => r.onLog(a.join(" ")),
+    };
+    const AsyncFn = Object.getPrototypeOf(async function () {}).constructor;
+    try { await new AsyncFn(...Object.keys(api), code)(...Object.values(api)); this.onLog("script done"); }
+    catch (e) { this.onLog(e instanceof Aborted ? "script stopped" : `script error: ${e.message}`); }
+    finally { await this.stop(); }
+  }
+  halt() { this.abort = true; return this.stop(); }
+}
+
+// ---------- presets ----------
+const PRESETS = {
+  "Drunk walk": `speed(1)
+for (let i = 0; i < 8; i++) {
+  await pick([forward, left, right, back])(rand(300, 1100))
+  await wait(rand(100, 500))
+}
+await dance()`,
+  "Disco lights": `const cs = ['red', 'green', 'blue', 'yellow', 'purple', 'white']
+for (let i = 0; i < 16; i++) {
+  await color(cs[i % cs.length], true)
+  await eyes(i % 2 === 0)
+  await wait(350)
+}
+await eyes(true)`,
+  "Panic!": `color('red'); speed(0)
+for (let i = 0; i < 10; i++) {
+  await left(250)
+  await right(250)
+}
+await hand(); await back(1500)`,
+  "Dance-off": `const cs = ['purple', 'yellow', 'green', 'red', 'white']
+for (const c of cs) {
+  color(c)
+  const id = rand(1, 93)
+  log('dance #' + id)
+  await dance(id, 8, 3500)
+}`,
+  "Shy robot": `color('darkblue'); speed(3)
+await back(1200)
+await left(600)
+await eyes(false); await wait(1500); await eyes(true)
+await hand(3)
+await forward(400)`,
+  "Blank": `// your choreography\n`,
+};
+
+// ---------- UI ----------
+const $ = (s) => document.querySelector(s);
+const robot = new Robert();
+window.robot = robot;
+const logEl = $("#log");
+robot.onLog = (m) => { logEl.textContent += `${new Date().toLocaleTimeString()}  ${m}\n`; logEl.scrollTop = logEl.scrollHeight; };
+robot.onStatus = (on, name) => { $("#dot").classList.toggle("on", on); $("#status").textContent = on ? name : "not connected"; $("#connect").textContent = on ? "Disconnect" : "Connect"; };
+
+if (!navigator.bluetooth) { $("#nobt").hidden = false; $("#connect").disabled = true; }
+
+$("#connect").onclick = async () => {
+  if (robot.char) return robot.disconnect();
+  try { await robot.connect(); } catch (e) { robot.onLog(`connect: ${e.message}`); }
+};
+
+document.querySelectorAll("[role=tab]").forEach((t) => t.onclick = () => {
+  document.querySelectorAll("[role=tab]").forEach((x) => x.setAttribute("aria-selected", x === t));
+  $("#tab-remote").hidden = t.dataset.tab !== "remote"; $("#tab-play").hidden = t.dataset.tab !== "play";
+});
+
+// hold-to-drive, like the app: press = move continuously, release = stop
+let held = null;
+const press = (dir) => { if (held === dir) return; held = dir; robot.send(DIR[dir], CONTINUOUS); };
+const release = () => { if (!held) return; held = null; robot.stop(); };
+document.querySelectorAll("[data-dir]").forEach((b) => {
+  b.addEventListener("pointerdown", (e) => { b.setPointerCapture(e.pointerId); press(b.dataset.dir); });
+  b.addEventListener("pointerup", release); b.addEventListener("pointercancel", release);
+});
+$("#stopBtn").onclick = () => robot.halt();
+const KEYS = { ArrowUp: "forward", w: "forward", ArrowDown: "back", s: "back", ArrowLeft: "left", a: "left", ArrowRight: "right", d: "right" };
+addEventListener("keydown", (e) => {
+  if (e.target.matches("textarea,input,select")) return;
+  if (KEYS[e.key]) { e.preventDefault(); press(KEYS[e.key]); }
+  if (e.key === " ") { e.preventDefault(); robot.halt(); }
+});
+addEventListener("keyup", (e) => { if (KEYS[e.key] === held) release(); });
+
+for (const [name, css] of Object.entries(SWATCH)) {
+  const b = document.createElement("button");
+  b.className = "sw"; b.style.background = css; b.title = name; b.setAttribute("aria-label", name);
+  b.setAttribute("aria-pressed", name === "blue");
+  b.onclick = () => { document.querySelectorAll(".sw").forEach((x) => x.setAttribute("aria-pressed", x === b)); robot.setColor(name); };
+  $("#colors").append(b);
+}
+$("#speed").oninput = (e) => { robot.setSpeed(+e.target.value); $("#speedv").textContent = e.target.value; };
+$("#eyes").onchange = (e) => robot.setEyes(e.target.checked);
+document.querySelectorAll("[data-rand]").forEach((b) => b.onclick = () => robot.send(robot.randomId(b.dataset.rand), +$("#beats").value));
+
+const renderIds = () => {
+  const [lo, hi] = RANGES[$("#kind").value]; const box = $("#ids"); box.innerHTML = "";
+  for (let i = lo; i <= hi; i++) {
+    if (i === STOP || i === 231) continue;
+    const b = document.createElement("button"); b.textContent = i;
+    b.onclick = () => robot.send(i, +$("#beats").value); box.append(b);
+  }
+};
+$("#kind").onchange = renderIds; renderIds();
+
+for (const name of Object.keys(PRESETS)) $("#preset").append(new Option(name, name));
+const loadPreset = () => { $("#code").value = PRESETS[$("#preset").value]; };
+$("#preset").onchange = loadPreset; loadPreset();
+$("#run").onclick = async () => {
+  if (!robot.char) return robot.onLog("connect first");
+  $("#run").disabled = true;
+  try { await robot.runScript($("#code").value); } finally { $("#run").disabled = false; }
+};
+$("#halt").onclick = () => robot.halt();
+</script>
+</body>
+</html>
