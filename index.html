@@ -117,7 +117,8 @@ const SERVICE = 0xffc0, WRITE_CHAR = 0xffc1;
 const COLORS = { darkblue: 1, blue: 2, green: 3, yellow: 4, red: 5, purple: 6, white: 7 };
 const SWATCH = { darkblue: "#2741c9", blue: "#3aa0ff", green: "#2fbf5b", yellow: "#f2c81f", red: "#e8413a", purple: "#9b4ddb", white: "#f4f4f4" };
 const STOP = 77, CONTINUOUS = 0xff;
-const DIR = { back: 1, forward: 2, left: 3, right: 4 };
+// Directions as seen from Robert's face (the app's labels are reversed). Verified on the robot.
+const DIR = { forward: 1, back: 2, right: 3, left: 4 };
 const RANGES = { combined: [1, 93], hand: [100, 110], leg: [200, 235] }; // 231 missing in the app
 
 // Mirrors the app's packet builder (type 0x32): header, type, count, 8-byte item, 01 01, footer.
