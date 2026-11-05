@@ -9,7 +9,7 @@ Needs **Chrome or Edge** (Windows, macOS, Android, ChromeOS). Firefox and iOS br
 ## Features
 
 - Hold-to-drive arrows (also arrow keys / WASD, space = stop)
-- LED color, speed, eye blink
+- Eye color, speed, eye blink
 - Every built-in move: 93 dances, 11 hand moves, 35 leg moves
 - Choreography tab: write short JavaScript scripts, with presets
 
@@ -38,7 +38,7 @@ AA AA CC 32 01 | A A T S C E 02 02 | 01 01 | 55 55
 |---|---|
 | A | action: 1-93 dances, 100-110 hand, 200-235 leg (no 231), **77 = stop**. Driving (seen from Robert's face) = 1 forward, 2 back, 3 right, 4 left |
 | T | beats 2/4/8/12, `FF` = keep going until next command |
-| S / C / E | speed 0 fastest > 1 > 2 > 3 slowest · color 1 dark blue, 2 blue, 3 green, 4 yellow, 5 red, 6 purple, 7 white · eyes 0 steady, 4 slow blink |
+| S / C / E | speed 0 fastest > 1 > 2 > 3 slowest · eye color (tested) 1 blue, 2 cyan, 3 green, 4 yellow, 5 red, 6 purple, 7 white · eyes 0 steady, 4 slow blink |
 
 The robot stores no programs; the app streams one move at a time.
 

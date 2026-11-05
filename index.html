@@ -72,8 +72,9 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
         <p class="note">Keys: arrows / WASD, space = stop.</p>
       </div>
       <div class="card">
-        <h2>Style</h2>
+        <h2>Eye color</h2>
         <div class="row" id="colors"></div>
+        <p class="note">Eyes take 2-15 s to change color.</p>
         <p class="row" style="margin-top:12px"><label>Speed <span class="note">slow</span> <input id="speed" type="range" min="0" max="3" value="3"> <span class="note">fast</span></label></p>
         <p class="row"><label><input id="eyes" type="checkbox"> Eyes blink</label></p>
         <h2 style="margin-top:14px">Random move</h2>
@@ -114,8 +115,8 @@ code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:12.5px}
 <script type="module">
 // ---------- protocol (reverse engineered from cn.app.robert 1.5.4) ----------
 const SERVICE = 0xffc0, WRITE_CHAR = 0xffc1;
-const COLORS = { darkblue: 1, blue: 2, green: 3, yellow: 4, red: 5, purple: 6, white: 7 };
-const SWATCH = { darkblue: "#2741c9", blue: "#3aa0ff", green: "#2fbf5b", yellow: "#f2c81f", red: "#e8413a", purple: "#9b4ddb", white: "#f4f4f4" };
+const COLORS = { blue: 1, cyan: 2, green: 3, yellow: 4, red: 5, purple: 6, white: 7 };
+const SWATCH = { blue: "#2741c9", cyan: "#2fd6c8", green: "#2fbf5b", yellow: "#f2c81f", red: "#e8413a", purple: "#9b4ddb", white: "#f4f4f4" };
 const STOP = 77, CONTINUOUS = 0xff;
 // Directions as seen from Robert's face (the app's labels are reversed). Verified on the robot.
 const DIR = { forward: 1, back: 2, right: 3, left: 4 };
@@ -132,7 +133,7 @@ class Aborted extends Error {}
 class Robert {
   constructor() {
     this.device = null; this.char = null;
-    this.state = { speed: 0, color: COLORS.blue, eyes: 0 };
+    this.state = { speed: 0, color: COLORS.cyan, eyes: 0 };
     this.queue = Promise.resolve(); // GATT takes one op at a time
     this.abort = false; this.onLog = () => {}; this.onStatus = () => {};
   }
@@ -196,13 +197,12 @@ for (let i = 0; i < 8; i++) {
   await wait(rand(100, 500))
 }
 await dance()`,
-  "Disco lights": `const cs = ['red', 'green', 'blue', 'yellow', 'purple', 'white']
-for (let i = 0; i < 16; i++) {
-  await color(cs[i % cs.length], true)
-  await blink(i % 4 === 0)
-  await wait(350)
-}
-await blink(false)`,
+  "Color show": `// eyes take 2-15 s to change color, so go slow
+for (const c of ['red', 'green', 'blue', 'yellow', 'purple', 'white', 'cyan']) {
+  log(c)
+  await color(c, true)
+  await wait(8000)
+}`,
   "Panic!": `color('red'); speed(3)
 for (let i = 0; i < 10; i++) {
   await left(250)
@@ -216,7 +216,7 @@ for (const c of cs) {
   log('dance #' + id)
   await dance(id, 8, 3500)
 }`,
-  "Shy robot": `color('darkblue'); speed(0)
+  "Shy robot": `color('blue'); speed(0)
 await back(1200)
 await left(600)
 await blink(true); await wait(3000); await blink(false)
@@ -265,7 +265,7 @@ addEventListener("keyup", (e) => { if (KEYS[e.key] === held) release(); });
 for (const [name, css] of Object.entries(SWATCH)) {
   const b = document.createElement("button");
   b.className = "sw"; b.style.background = css; b.title = name; b.setAttribute("aria-label", name);
-  b.setAttribute("aria-pressed", name === "blue");
+  b.setAttribute("aria-pressed", name === "cyan");
   b.onclick = () => { document.querySelectorAll(".sw").forEach((x) => x.setAttribute("aria-pressed", x === b)); robot.setColor(name); };
   $("#colors").append(b);
 }
